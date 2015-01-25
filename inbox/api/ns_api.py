@@ -538,7 +538,6 @@ def contact_search_api():
         results = g.db_session.query(Contact)
 
     results = results.filter(Contact.namespace_id == g.namespace.id,
-                             Contact.source == 'local',
                              term_filter).order_by(asc(Contact.id))
 
     if args['view'] == 'count':
@@ -611,7 +610,6 @@ def event_search_api():
         ends_after=args['ends_after'],
         limit=args['limit'],
         offset=args['offset'],
-        source='local',
         view=args['view'],
         db_session=g.db_session)
 
@@ -642,8 +640,6 @@ def event_create_api():
     title = data.get('title', '')
     description = data.get('description')
     location = data.get('location')
-    reminders = data.get('reminders')
-    recurrence = data.get('recurrence')
     when = data.get('when')
 
     participants = data.get('participants', [])
@@ -652,14 +648,12 @@ def event_create_api():
             p['status'] = 'noreply'
 
     new_event = events.crud.create(g.namespace, g.db_session,
-                                     calendar,
-                                     title,
-                                     description,
-                                     location,
-                                     reminders,
-                                     recurrence,
-                                     when,
-                                     participants)
+                                   calendar,
+                                   title,
+                                   description,
+                                   location,
+                                   when,
+                                   participants)
 
     schedule_action('create_event', new_event, g.namespace.id, g.db_session)
     return g.encoder.jsonify(new_event)
@@ -756,7 +750,7 @@ def event_delete_api(public_id):
 
     schedule_action('delete_event', event, g.namespace.id, g.db_session,
                     event_uid=event.uid,
-                    calendar_name=event.calendar.name)
+                    calendar_uid=event.calendar.uid)
     events.crud.delete(g.namespace, g.db_session, public_id)
     return g.encoder.jsonify(None)
 
